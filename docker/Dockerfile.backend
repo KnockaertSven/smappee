@@ -1,4 +1,4 @@
-# Stage 1: Build
+# Stage 1: Build the OSGi bundle
 FROM maven:3.9-eclipse-temurin-25 AS builder
 
 WORKDIR /workspace
@@ -8,13 +8,20 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests -B
 
-# Stage 2: Runtime
+# Stage 2: Runtime — Apache Felix OSGi container
 FROM eclipse-temurin:25-jre
 
-WORKDIR /app
+# Felix version to use
+ARG FELIX_VERSION=7.0.5
 
-COPY --from=builder /workspace/target/*.jar /app/app.jar
+WORKDIR /felix
+
+# Download and unpack Apache Felix
+ADD https://archive.apache.org/dist/felix/org.apache.felix.main-${FELIX_VERSION}.jar /felix/felix.jar
+
+# Copy our OSGi bundle into Felix's auto-deploy directory
+COPY --from=builder /workspace/target/*.jar /felix/bundle/
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/felix/felix.jar"]
