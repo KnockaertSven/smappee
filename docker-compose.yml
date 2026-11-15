@@ -20,7 +20,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile.backend
     container_name: smappee-backend
     ports:
       - "8080:8080"
@@ -38,8 +38,8 @@ services:
 
   charger-1:
     build:
-      context: ./chargers
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/Dockerfile.charger
     container_name: smappee-charger-1
     environment:
       CHARGER_ID: "charger-01"
@@ -54,8 +54,8 @@ services:
 
   charger-2:
     build:
-      context: ./chargers
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/Dockerfile.charger
     container_name: smappee-charger-2
     environment:
       CHARGER_ID: "charger-02"
@@ -70,8 +70,8 @@ services:
 
   charger-3:
     build:
-      context: ./chargers
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/Dockerfile.charger
     container_name: smappee-charger-3
     environment:
       CHARGER_ID: "charger-03"
