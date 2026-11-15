@@ -1,4 +1,4 @@
-package org.svenknockaert.smappee.platform.api;
+package org.svenknockaert.smappee.platform.api.dto;
 
 import java.time.Instant;
 

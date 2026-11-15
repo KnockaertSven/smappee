@@ -30,8 +30,8 @@ The project is being initialized to build a charger telemetry service adhering t
 - **Choice**: OSGi Declarative Services (DS 1.5) and HTTP Whiteboard pattern.
 - **Rationale**: Components are plain Java classes (POJOs) with `@Component` annotations. Exposing REST endpoints via JAX-RS Whiteboard or Felix HTTP Whiteboard allows automatic service registration without manual servlet context plumbing.
 - **Design Structure**:
-  - `org.svenknockaert.smappee.platform.api`: Interfaces and DTOs (e.g., `HealthCheckService`, `PingResponse`).
-  - `org.svenknockaert.smappee.platform.internal`: DS component implementations and REST resources (e.g., `PingResource`).
+  - `org.svenknockaert.smappee.platform.api`: REST resource components (`PingResource`, `EchoResource`).
+  - `org.svenknockaert.smappee.platform.api.dto`: DTO records (`PingResponse`, `EchoPayload`).
 
 ### 3. Integration Testing Strategy: Testcontainers + Black-Box I/O
 - **Choice**: JUnit 5 integration tests extending an abstract `BaseIT`, running a real MySQL container via `org.testcontainers:mysql`.

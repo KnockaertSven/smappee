@@ -1,4 +1,4 @@
-package org.svenknockaert.smappee.platform.internal;
+package org.svenknockaert.smappee.platform.api;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.svenknockaert.smappee.platform.api.PingResponse;
+import org.svenknockaert.smappee.platform.api.dto.PingResponse;
 
 @Path("/api/ping")
 @Produces(MediaType.APPLICATION_JSON)

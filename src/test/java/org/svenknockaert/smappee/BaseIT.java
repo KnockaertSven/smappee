@@ -15,9 +15,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.svenknockaert.smappee.platform.api.EchoPayload;
-import org.svenknockaert.smappee.platform.internal.EchoResource;
-import org.svenknockaert.smappee.platform.internal.PingResource;
+import org.svenknockaert.smappee.platform.api.dto.EchoPayload;
+import org.svenknockaert.smappee.platform.api.EchoResource;
+import org.svenknockaert.smappee.platform.api.PingResource;
 import org.testcontainers.containers.MySQLContainer;
 
 public abstract class BaseIT {

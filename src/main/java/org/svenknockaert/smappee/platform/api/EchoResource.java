@@ -1,4 +1,4 @@
-package org.svenknockaert.smappee.platform.internal;
+package org.svenknockaert.smappee.platform.api;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -7,7 +7,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.svenknockaert.smappee.platform.api.EchoPayload;
+import org.svenknockaert.smappee.platform.api.dto.EchoPayload;
 
 @Path("/api/echo")
 @Consumes(MediaType.APPLICATION_JSON)

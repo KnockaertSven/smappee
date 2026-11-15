@@ -10,9 +10,9 @@
 
 ## 2. Platform Runtime & Basic I/O Components
 
-- [x] 2.1 Create the API model records (`PingResponse`, `EchoPayload`) in `org.svenknockaert.smappee.platform.api` following project styling and immutability rules.
-- [x] 2.2 Implement `PingResource` in `org.svenknockaert.smappee.platform.internal` annotated with `@Component` and JAX-RS `@Path("/api/ping")` to serve health checks.
-- [x] 2.3 Implement `EchoResource` in `org.svenknockaert.smappee.platform.internal` annotated with `@Component` and JAX-RS `@Path("/api/echo")` to handle JSON I/O echoing.
+- [x] 2.1 Create the API model records (`PingResponse`, `EchoPayload`) in `org.svenknockaert.smappee.platform.api.dto` following project styling and immutability rules.
+- [x] 2.2 Implement `PingResource` in `org.svenknockaert.smappee.platform.api` annotated with `@Component` and JAX-RS `@Path("/api/ping")` to serve health checks.
+- [x] 2.3 Implement `EchoResource` in `org.svenknockaert.smappee.platform.api` annotated with `@Component` and JAX-RS `@Path("/api/echo")` to handle JSON I/O echoing.
 
 ## 3. Integration Testing with Testcontainers
 
