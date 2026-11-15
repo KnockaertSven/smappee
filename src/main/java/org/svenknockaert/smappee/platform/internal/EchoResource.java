@@ -5,7 +5,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.svenknockaert.smappee.platform.api.EchoPayload;
@@ -17,11 +16,11 @@ import org.svenknockaert.smappee.platform.api.EchoPayload;
 public class EchoResource {
 
     @POST
-    public Response echo(EchoPayload payload) {
+    public EchoPayload echo(EchoPayload payload) {
         if (payload == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            throw new IllegalArgumentException("Payload cannot be null");
         }
 
-        return Response.ok(payload).build();
+        return payload;
     }
 }

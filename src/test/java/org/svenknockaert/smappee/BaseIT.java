@@ -50,43 +50,51 @@ public abstract class BaseIT {
         server = HttpServer.create(new InetSocketAddress(0), 0);
 
         server.createContext("/api/ping", exchange -> {
-            var response = pingResource.ping();
-            byte[] bytes = MAPPER.writeValueAsBytes(response.getEntity());
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(response.getStatus(), bytes.length);
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(bytes);
+            try {
+                var response = pingResource.ping();
+                byte[] bytes = MAPPER.writeValueAsBytes(response);
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(200, bytes.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(bytes);
+                }
+            } catch (Throwable t) {
+                exchange.sendResponseHeaders(500, -1);
             }
         });
 
         server.createContext("/api/echo", exchange -> {
-            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(405, -1);
-                return;
-            }
-
-            try (InputStream is = exchange.getRequestBody()) {
-                byte[] requestBytes = is.readAllBytes();
-                if (requestBytes.length == 0) {
-                    exchange.sendResponseHeaders(400, -1);
+            try {
+                if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                    exchange.sendResponseHeaders(405, -1);
                     return;
                 }
 
-                EchoPayload payload;
-                try {
-                    payload = MAPPER.readValue(requestBytes, EchoPayload.class);
-                } catch (Exception e) {
-                    exchange.sendResponseHeaders(400, -1);
-                    return;
-                }
+                try (InputStream is = exchange.getRequestBody()) {
+                    byte[] requestBytes = is.readAllBytes();
+                    if (requestBytes.length == 0) {
+                        exchange.sendResponseHeaders(400, -1);
+                        return;
+                    }
 
-                var response = echoResource.echo(payload);
-                byte[] bytes = MAPPER.writeValueAsBytes(response.getEntity());
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
-                exchange.sendResponseHeaders(response.getStatus(), bytes.length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(bytes);
+                    EchoPayload payload;
+                    try {
+                        payload = MAPPER.readValue(requestBytes, EchoPayload.class);
+                    } catch (Exception e) {
+                        exchange.sendResponseHeaders(400, -1);
+                        return;
+                    }
+
+                    var response = echoResource.echo(payload);
+                    byte[] bytes = MAPPER.writeValueAsBytes(response);
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(200, bytes.length);
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(bytes);
+                    }
                 }
+            } catch (Throwable t) {
+                exchange.sendResponseHeaders(500, -1);
             }
         });
 
