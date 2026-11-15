@@ -1,0 +1,89 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: smappee-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: smappee
+      MYSQL_USER: smappee
+      MYSQL_PASSWORD: smappee
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - smappee-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smappee-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: smappee
+      DB_USER: smappee
+      DB_PASSWORD: smappee
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smappee-net
+
+  charger-1:
+    build:
+      context: ./chargers
+      dockerfile: Dockerfile
+    container_name: smappee-charger-1
+    environment:
+      CHARGER_ID: "charger-01"
+      BACKEND_URL: "http://backend:8080/api/telemetry/samples"
+      BEHAVIOR: "standard"
+      PUSH_INTERVAL_SECONDS: "300"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - smappee-net
+
+  charger-2:
+    build:
+      context: ./chargers
+      dockerfile: Dockerfile
+    container_name: smappee-charger-2
+    environment:
+      CHARGER_ID: "charger-02"
+      BACKEND_URL: "http://backend:8080/api/telemetry/samples"
+      BEHAVIOR: "flaky_disconnect"
+      PUSH_INTERVAL_SECONDS: "300"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - smappee-net
+
+  charger-3:
+    build:
+      context: ./chargers
+      dockerfile: Dockerfile
+    container_name: smappee-charger-3
+    environment:
+      CHARGER_ID: "charger-03"
+      BACKEND_URL: "http://backend:8080/api/telemetry/samples"
+      BEHAVIOR: "revisions_and_chaos"
+      PUSH_INTERVAL_SECONDS: "300"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - smappee-net
+
+networks:
+  smappee-net:
+    driver: bridge
