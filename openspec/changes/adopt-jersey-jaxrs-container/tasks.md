@@ -13,5 +13,5 @@
 
 ## 3. Integration Verification
 
-- [ ] 3.1 Verify `PingEchoIT` passes end-to-end against Jersey container (verifying GET `/api/ping`, POST `/api/echo`, and HTTP 400 malformed JSON handling).
-- [ ] 3.2 Verify `TelemetryIngestionIT` passes end-to-end against Jersey container (verifying batch sample ingestion, idempotent replays, bitemporal revisions, and atomic rollbacks).
+- [x] 3.1 Verify `PingEchoIT` passes end-to-end against Jersey container (verifying GET `/api/ping`, POST `/api/echo`, and HTTP 400 malformed JSON handling).
+- [x] 3.2 Verify `TelemetryIngestionIT` passes end-to-end against Jersey container (verifying batch sample ingestion, idempotent replays, bitemporal revisions, and atomic rollbacks).

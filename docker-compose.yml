@@ -50,7 +50,6 @@ services:
     environment:
       CHARGER_ID: "charger-01"
       BACKEND_URL: "http://backend:8080/api/telemetry/samples"
-      BEHAVIOR: "standard"
       PUSH_INTERVAL_SECONDS: "300"
     depends_on:
       backend:
@@ -66,7 +65,6 @@ services:
     environment:
       CHARGER_ID: "charger-02"
       BACKEND_URL: "http://backend:8080/api/telemetry/samples"
-      BEHAVIOR: "flaky_disconnect"
       PUSH_INTERVAL_SECONDS: "300"
     depends_on:
       backend:
@@ -82,7 +80,6 @@ services:
     environment:
       CHARGER_ID: "charger-03"
       BACKEND_URL: "http://backend:8080/api/telemetry/samples"
-      BEHAVIOR: "revisions_and_chaos"
       PUSH_INTERVAL_SECONDS: "300"
     depends_on:
       backend:
