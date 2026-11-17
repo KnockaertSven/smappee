@@ -17,7 +17,8 @@
         <osgi.ds.version>1.5.1</osgi.ds.version>
         <osgi.bundle.annotation.version>2.0.0</osgi.bundle.annotation.version>
         <felix.scr.version>2.2.12</felix.scr.version>
-        <jakarta.ws.rs.version>3.0.0</jakarta.ws.rs.version>
+        <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
+        <jersey.version>3.1.10</jersey.version>
         <jackson.version>2.18.2</jackson.version>
         <mysql.version>9.2.0</mysql.version>
         <hikaricp.version>6.2.1</hikaricp.version>
@@ -57,11 +58,26 @@
             <version>${felix.scr.version}</version>
         </dependency>
 
-        <!-- JAX-RS / HTTP Whiteboard API -->
+        <!-- JAX-RS / Jersey Container -->
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
             <version>${jakarta.ws.rs.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-jdk-http</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
 
         <!-- Jackson JSON -->

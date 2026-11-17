@@ -23,7 +23,7 @@ class TelemetryIngestionIT extends BaseIT {
         var response = sendPost("/api/telemetry/samples", json);
 
         //then
-        assertThat(response.statusCode()).isEqualTo(202);
+        assertThat(response.statusCode()).isEqualTo(200);
     }
 
     @Test
@@ -40,7 +40,7 @@ class TelemetryIngestionIT extends BaseIT {
         var response = sendPost("/api/telemetry/samples", json);
 
         //then
-        assertThat(response.statusCode()).isEqualTo(202);
+        assertThat(response.statusCode()).isEqualTo(200);
         try (Connection connection = dataSource.getConnection()) {
             assertThat(meterReadingRepository.countByChargerId(connection, chargerId)).isEqualTo(2);
         }
@@ -56,7 +56,7 @@ class TelemetryIngestionIT extends BaseIT {
         var response = sendPost("/api/telemetry/samples", json);
 
         //then
-        assertThat(response.statusCode()).isEqualTo(202);
+        assertThat(response.statusCode()).isEqualTo(200);
     }
 
     @Test
@@ -69,7 +69,7 @@ class TelemetryIngestionIT extends BaseIT {
         String json = MAPPER.writeValueAsString(sample);
 
         var firstResponse = sendPost("/api/telemetry/samples", json);
-        assertThat(firstResponse.statusCode()).isEqualTo(202);
+        assertThat(firstResponse.statusCode()).isEqualTo(200);
 
         Instant originalIngestionTime;
         try (Connection connection = dataSource.getConnection()) {
@@ -83,7 +83,7 @@ class TelemetryIngestionIT extends BaseIT {
         var replayResponse = sendPost("/api/telemetry/samples", json);
 
         //then
-        assertThat(replayResponse.statusCode()).isEqualTo(202);
+        assertThat(replayResponse.statusCode()).isEqualTo(200);
         try (Connection connection = dataSource.getConnection()) {
             assertThat(meterReadingRepository.countByChargerId(connection, chargerId)).isEqualTo(1);
             var readingAfterReplay = meterReadingRepository.findByChargerEventAndSequence(
@@ -103,13 +103,13 @@ class TelemetryIngestionIT extends BaseIT {
         var revisedSample = MeterSampleFixture.createSample(chargerId, eventTime, 3500L, 21.5, 105L);
 
         var firstResponse = sendPost("/api/telemetry/samples", MAPPER.writeValueAsString(originalSample));
-        assertThat(firstResponse.statusCode()).isEqualTo(202);
+        assertThat(firstResponse.statusCode()).isEqualTo(200);
 
         //when
         var revisionResponse = sendPost("/api/telemetry/samples", MAPPER.writeValueAsString(revisedSample));
 
         //then
-        assertThat(revisionResponse.statusCode()).isEqualTo(202);
+        assertThat(revisionResponse.statusCode()).isEqualTo(200);
         try (Connection connection = dataSource.getConnection()) {
             assertThat(meterReadingRepository.countByChargerId(connection, chargerId)).isEqualTo(2);
             var readings = meterReadingRepository.findByChargerId(connection, chargerId);

@@ -7,9 +7,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.svenknockaert.smappee.platform.api.ApiServer;
 import org.svenknockaert.smappee.platform.api.EchoResource;
 import org.svenknockaert.smappee.platform.api.PingResource;
-import org.svenknockaert.smappee.platform.api.dto.EchoPayload;
 import org.svenknockaert.smappee.platform.persistence.DatabaseMigrator;
 import org.svenknockaert.smappee.platform.persistence.TransactionManager;
 import org.svenknockaert.smappee.telemetry.api.TelemetryIngestionResource;
@@ -20,15 +20,11 @@ import org.svenknockaert.smappee.telemetry.internal.TelemetryIngestionServiceImp
 import org.testcontainers.containers.MySQLContainer;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.util.List;
 
 public abstract class BaseIT {
 
@@ -70,106 +66,7 @@ public abstract class BaseIT {
         EchoResource echoResource = new EchoResource();
         TelemetryIngestionResource telemetryIngestionResource = new TelemetryIngestionResource(telemetryIngestionService);
 
-        server = HttpServer.create(new InetSocketAddress(0), 0);
-
-        server.createContext("/api/ping", exchange -> {
-            try {
-                var response = pingResource.ping();
-                byte[] bytes = MAPPER.writeValueAsBytes(response);
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, bytes.length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(bytes);
-                }
-            } catch (Throwable t) {
-                exchange.sendResponseHeaders(500, -1);
-            }
-        });
-
-        server.createContext("/api/echo", exchange -> {
-            try {
-                if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                    exchange.sendResponseHeaders(405, -1);
-                    return;
-                }
-
-                try (InputStream is = exchange.getRequestBody()) {
-                    byte[] requestBytes = is.readAllBytes();
-                    if (requestBytes.length == 0) {
-                        exchange.sendResponseHeaders(400, -1);
-                        return;
-                    }
-
-                    EchoPayload payload;
-                    try {
-                        payload = MAPPER.readValue(requestBytes, EchoPayload.class);
-                    } catch (Exception e) {
-                        exchange.sendResponseHeaders(400, -1);
-                        return;
-                    }
-
-                    var response = echoResource.echo(payload);
-                    byte[] bytes = MAPPER.writeValueAsBytes(response);
-                    exchange.getResponseHeaders().set("Content-Type", "application/json");
-                    exchange.sendResponseHeaders(200, bytes.length);
-                    try (OutputStream os = exchange.getResponseBody()) {
-                        os.write(bytes);
-                    }
-                }
-            } catch (Throwable t) {
-                exchange.sendResponseHeaders(500, -1);
-            }
-        });
-
-        server.createContext("/api/telemetry/samples", exchange -> {
-            try {
-                if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                    exchange.sendResponseHeaders(405, -1);
-                    return;
-                }
-
-                try (InputStream is = exchange.getRequestBody()) {
-                    byte[] requestBytes = is.readAllBytes();
-                    if (requestBytes.length == 0) {
-                        byte[] errBytes = MAPPER.writeValueAsBytes(Map.of("error", "Payload cannot be empty"));
-                        exchange.getResponseHeaders().set("Content-Type", "application/json");
-                        exchange.sendResponseHeaders(400, errBytes.length);
-                        try (OutputStream os = exchange.getResponseBody()) {
-                            os.write(errBytes);
-                        }
-                        return;
-                    }
-
-                    String requestBody = new String(requestBytes, StandardCharsets.UTF_8);
-                    try {
-                        var response = telemetryIngestionResource.receiveSamples(requestBody);
-                        byte[] bytes = MAPPER.writeValueAsBytes(response);
-                        exchange.getResponseHeaders().set("Content-Type", "application/json");
-                        exchange.sendResponseHeaders(202, bytes.length);
-                        try (OutputStream os = exchange.getResponseBody()) {
-                            os.write(bytes);
-                        }
-                    } catch (IllegalArgumentException e) {
-                        byte[] errBytes = MAPPER.writeValueAsBytes(Map.of("error", e.getMessage()));
-                        exchange.getResponseHeaders().set("Content-Type", "application/json");
-                        exchange.sendResponseHeaders(400, errBytes.length);
-                        try (OutputStream os = exchange.getResponseBody()) {
-                            os.write(errBytes);
-                        }
-                    }
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
-                byte[] err = t.toString().getBytes(StandardCharsets.UTF_8);
-                exchange.getResponseHeaders().set("Content-Type", "text/plain");
-                exchange.sendResponseHeaders(500, err.length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(err);
-                }
-            }
-        });
-
-        server.start();
+        server = ApiServer.start(0, List.of(pingResource, echoResource, telemetryIngestionResource));
         serverPort = server.getAddress().getPort();
     }
 

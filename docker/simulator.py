@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 
 CHARGER_ID = os.getenv("CHARGER_ID", "charger-01")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8080/api/telemetry/samples")
-BACKEND_PING_URL = os.getenv("BACKEND_PING_URL", BACKEND_URL.replace("/telemetry/samples", "/ping"))
 BEHAVIOR = os.getenv("BEHAVIOR", "standard")
 PUSH_INTERVAL = int(os.getenv("PUSH_INTERVAL_SECONDS", "300"))
 
@@ -26,21 +25,6 @@ def handle_shutdown(signum, frame):
 
 signal.signal(signal.SIGTERM, handle_shutdown)
 signal.signal(signal.SIGINT, handle_shutdown)
-
-
-def wait_for_backend():
-    print(f"[{CHARGER_ID}] Waiting for backend to become ready at {BACKEND_PING_URL}...", flush=True)
-    while running:
-        try:
-            req = urllib.request.Request(BACKEND_PING_URL)
-            with urllib.request.urlopen(req, timeout=2) as resp:
-                if resp.status == 200:
-                    print(f"[{CHARGER_ID}] Backend is online (HTTP 200). Beginning telemetry transmissions.", flush=True)
-                    return True
-        except Exception:
-            pass
-        time.sleep(1)
-    return False
 
 
 def send_payload(payload):
