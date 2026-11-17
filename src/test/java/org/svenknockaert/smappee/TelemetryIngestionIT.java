@@ -1,7 +1,6 @@
 package org.svenknockaert.smappee;
 
 import org.junit.jupiter.api.Test;
-import org.svenknockaert.smappee.telemetry.MeterSampleFixture;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -10,13 +9,15 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.svenknockaert.smappee.telemetry.MeterSampleFixture.createSample;
+import static org.svenknockaert.smappee.telemetry.MeterSampleFixture.createWithCharger;
 
 class TelemetryIngestionIT extends BaseIT {
 
     @Test
     void should_accept_single_meter_sample_when_posting_valid_json() throws IOException, InterruptedException {
         //given
-        var sample = MeterSampleFixture.createWithCharger("charger-single");
+        var sample = createWithCharger("charger-single");
         String json = MAPPER.writeValueAsString(sample);
 
         //when
@@ -30,9 +31,9 @@ class TelemetryIngestionIT extends BaseIT {
     void should_accept_batch_samples_when_posting_valid_json_array() throws IOException, InterruptedException, SQLException {
         //given
         String chargerId = "charger-batch";
-        var sample1 = MeterSampleFixture.createSample(
+        var sample1 = createSample(
                 chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1000L, 22.0, 1L);
-        var sample2 = MeterSampleFixture.createSample(
+        var sample2 = createSample(
                 chargerId, Instant.parse("2026-11-15T14:05:00Z"), 1200L, 22.5, 2L);
         String json = MAPPER.writeValueAsString(List.of(sample1, sample2));
 
@@ -49,7 +50,7 @@ class TelemetryIngestionIT extends BaseIT {
     @Test
     void should_accept_batch_envelope_when_posting_wrapped_samples() throws IOException, InterruptedException {
         //given
-        var sample = MeterSampleFixture.createWithCharger("charger-envelope");
+        var sample = createWithCharger("charger-envelope");
         String json = "{\"samples\": [" + MAPPER.writeValueAsString(sample) + "]}";
 
         //when
@@ -64,7 +65,7 @@ class TelemetryIngestionIT extends BaseIT {
             throws IOException, InterruptedException, SQLException {
         //given
         String chargerId = "charger-replay";
-        var sample = MeterSampleFixture.createSample(
+        var sample = createSample(
                 chargerId, Instant.parse("2026-11-15T14:00:00Z"), 2500L, 24.0, 10L);
         String json = MAPPER.writeValueAsString(sample);
 
@@ -99,8 +100,8 @@ class TelemetryIngestionIT extends BaseIT {
         //given
         String chargerId = "charger-revision";
         Instant eventTime = Instant.parse("2026-11-15T14:00:00Z");
-        var originalSample = MeterSampleFixture.createSample(chargerId, eventTime, 3000L, 21.0, 100L);
-        var revisedSample = MeterSampleFixture.createSample(chargerId, eventTime, 3500L, 21.5, 105L);
+        var originalSample = createSample(chargerId, eventTime, 3000L, 21.0, 100L);
+        var revisedSample = createSample(chargerId, eventTime, 3500L, 21.5, 105L);
 
         var firstResponse = sendPost("/api/telemetry/samples", MAPPER.writeValueAsString(originalSample));
         assertThat(firstResponse.statusCode()).isEqualTo(200);
@@ -124,9 +125,9 @@ class TelemetryIngestionIT extends BaseIT {
             throws IOException, InterruptedException, SQLException {
         //given
         String chargerId = "charger-rollback";
-        var validSample = MeterSampleFixture.createSample(
+        var validSample = createSample(
                 chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1000L, 20.0, 1L);
-        var invalidSample = MeterSampleFixture.createSample(
+        var invalidSample = createSample(
                 chargerId, Instant.parse("2026-11-15T14:05:00Z"), -50L, 20.0, 2L);
         String json = MAPPER.writeValueAsString(List.of(validSample, invalidSample));
 
@@ -143,7 +144,7 @@ class TelemetryIngestionIT extends BaseIT {
     @Test
     void should_reject_with_bad_request_when_posting_abnormal_temperature() throws IOException, InterruptedException {
         //given
-        var abnormalSample = MeterSampleFixture.createSample(
+        var abnormalSample = createSample(
                 "charger-temp", Instant.parse("2026-11-15T14:00:00Z"), 1000L, 150.0, 1L);
         String json = MAPPER.writeValueAsString(abnormalSample);
 

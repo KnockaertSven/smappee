@@ -1,11 +1,10 @@
 package org.svenknockaert.smappee.telemetry.api;
 
-import java.util.List;
 import org.svenknockaert.smappee.telemetry.api.dto.MeterSampleDto;
 
-public interface TelemetryIngestionService {
+import java.util.List;
 
-    void ingest(MeterSampleDto sample);
+public interface TelemetryIngestionService {
 
     void ingestBatch(List<MeterSampleDto> samples);
 }

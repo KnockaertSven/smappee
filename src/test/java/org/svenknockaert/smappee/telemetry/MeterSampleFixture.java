@@ -9,16 +9,8 @@ public final class MeterSampleFixture {
     private MeterSampleFixture() {
     }
 
-    public static MeterSampleDto createDefault() {
-        return new MeterSampleDto("charger-01", Instant.parse("2026-11-15T14:00:00Z"), 1500L, 25.5, 101L);
-    }
-
     public static MeterSampleDto createWithCharger(String chargerId) {
-        return new MeterSampleDto(chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1500L, 25.5, 101L);
-    }
-
-    public static MeterSampleDto createWithSequence(String chargerId, long sequenceNumber) {
-        return new MeterSampleDto(chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1500L, 25.5, sequenceNumber);
+        return createSample(chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1500L, 25.5, 101L);
     }
 
     public static MeterSampleDto createSample(

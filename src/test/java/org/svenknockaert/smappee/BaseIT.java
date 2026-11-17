@@ -8,7 +8,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.svenknockaert.smappee.platform.api.ApiServer;
-import org.svenknockaert.smappee.platform.api.EchoResource;
 import org.svenknockaert.smappee.platform.api.PingResource;
 import org.svenknockaert.smappee.platform.persistence.DatabaseMigrator;
 import org.svenknockaert.smappee.platform.persistence.TransactionManager;
@@ -28,24 +27,22 @@ import java.util.List;
 
 public abstract class BaseIT {
 
-    protected static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4.0");
+    private static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4.0");
+
+    private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     protected static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    protected static final HttpClient CLIENT = HttpClient.newHttpClient();
-
     protected static HikariDataSource dataSource;
-
-    protected static TransactionManager transactionManager;
 
     protected static MeterReadingRepository meterReadingRepository;
 
-    protected static HttpServer server;
+    private static HttpServer server;
 
-    protected static int serverPort;
+    private static int serverPort;
 
     @BeforeAll
-    static void startEnvironment() throws IOException {
+    static void startEnvironment() {
         MYSQL.start();
 
         HikariConfig config = new HikariConfig();
@@ -56,17 +53,16 @@ public abstract class BaseIT {
 
         DatabaseMigrator.migrate(dataSource);
 
-        transactionManager = new TransactionManager(dataSource);
+        TransactionManager transactionManager = new TransactionManager(dataSource);
         meterReadingRepository = new MeterReadingRepository();
         MeterSampleValidator meterSampleValidator = new MeterSampleValidator();
         TelemetryIngestionService telemetryIngestionService = new TelemetryIngestionServiceImpl(
                 transactionManager, meterReadingRepository, meterSampleValidator);
 
         PingResource pingResource = new PingResource();
-        EchoResource echoResource = new EchoResource();
         TelemetryIngestionResource telemetryIngestionResource = new TelemetryIngestionResource(telemetryIngestionService);
 
-        server = ApiServer.start(0, List.of(pingResource, echoResource, telemetryIngestionResource));
+        server = ApiServer.start(0, List.of(pingResource, telemetryIngestionResource));
         serverPort = server.getAddress().getPort();
     }
 

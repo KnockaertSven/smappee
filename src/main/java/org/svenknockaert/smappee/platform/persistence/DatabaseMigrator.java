@@ -62,8 +62,4 @@ public final class DatabaseMigrator {
             }
         }
     }
-
-    public static void main(String[] args) {
-        migrateFromEnv();
-    }
 }

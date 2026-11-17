@@ -27,14 +27,6 @@ public class TelemetryIngestionServiceImpl implements TelemetryIngestionService 
     }
 
     @Override
-    public void ingest(MeterSampleDto sample) {
-        if (sample == null) {
-            throw new IllegalArgumentException("Sample cannot be null");
-        }
-        ingestBatch(List.of(sample));
-    }
-
-    @Override
     public void ingestBatch(List<MeterSampleDto> samples) {
         if (samples == null || samples.isEmpty()) {
             throw new IllegalArgumentException("Batch samples cannot be null or empty");

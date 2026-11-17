@@ -1,9 +1,7 @@
 package org.svenknockaert;
 
-import com.sun.net.httpserver.HttpServer;
 import com.zaxxer.hikari.HikariDataSource;
 import org.svenknockaert.smappee.platform.api.ApiServer;
-import org.svenknockaert.smappee.platform.api.EchoResource;
 import org.svenknockaert.smappee.platform.api.PingResource;
 import org.svenknockaert.smappee.platform.persistence.DatabaseMigrator;
 import org.svenknockaert.smappee.platform.persistence.TransactionManager;
@@ -17,7 +15,7 @@ import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    static void main() throws Exception {
         System.out.println("==================================================");
         System.out.println("  Smappee Telemetry Backend Bootstrapping...");
         System.out.println("==================================================");
@@ -32,10 +30,9 @@ public class Main {
                 transactionManager, repository, validator);
         TelemetryIngestionResource ingestionResource = new TelemetryIngestionResource(ingestionService);
         PingResource pingResource = new PingResource();
-        EchoResource echoResource = new EchoResource();
 
         int port = 8080;
-        HttpServer server = ApiServer.start(port, List.of(pingResource, echoResource, ingestionResource));
+        ApiServer.start(port, List.of(pingResource, ingestionResource));
 
         System.out.println("[Backend] Smappee API server listening on port " + port);
 
