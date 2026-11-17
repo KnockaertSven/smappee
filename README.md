@@ -16,7 +16,7 @@ docker compose up --build
 
 ## What I had to cut due to 3hr time constraints
 * Charger simulator logic: kept it simple without chaos modes, real-world edge cases are covered by integration tests instead
-* Authentication & authorization (explicitly out of scope per the case description)
+* Configurable timings, configurable host names, etc
 * Versioning checks of dependencies
 
 ## What I would add myself if I had more time
