@@ -55,10 +55,6 @@ def main():
     print(f"  Cadence:     {PUSH_INTERVAL}s", flush=True)
     print("==================================================", flush=True)
 
-    if not wait_for_backend():
-        print(f"[{CHARGER_ID}] Simulator aborted before backend readiness.", flush=True)
-        return
-
     sequence_number = 0
     cumulative_wh = 1000
     buffer = []
@@ -87,7 +83,7 @@ def main():
             if tick_count % 3 == 0:
                 print(f"[{CHARGER_ID}] Reconnecting: pushing buffered batch of {len(buffer)} samples...", flush=True)
                 status = send_payload(buffer)
-                if status == 202:
+                if status in (200, 202):
                     last_sent_sample = buffer[-1]
                     buffer.clear()
             else:
@@ -109,14 +105,14 @@ def main():
                 send_payload(revised_sample)
             else:
                 status = send_payload(buffer if len(buffer) > 1 else buffer[0])
-                if status == 202:
+                if status in (200, 202):
                     last_sent_sample = buffer[-1]
                     buffer.clear()
 
         else:
             # Standard behavior: immediate push, buffering only on network failure
             status = send_payload(buffer if len(buffer) > 1 else buffer[0])
-            if status == 202:
+            if status in (200, 202):
                 last_sent_sample = buffer[-1]
                 buffer.clear()
             else:
