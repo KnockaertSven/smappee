@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.svenknockaert.smappee.telemetry.MeterSampleFixture.createSample;
@@ -19,39 +18,6 @@ class TelemetryIngestionIT extends BaseIT {
         //given
         var sample = createWithCharger("charger-single");
         String json = MAPPER.writeValueAsString(sample);
-
-        //when
-        var response = sendPost("/api/telemetry/samples", json);
-
-        //then
-        assertThat(response.statusCode()).isEqualTo(200);
-    }
-
-    @Test
-    void should_accept_batch_samples_when_posting_valid_json_array() throws IOException, InterruptedException, SQLException {
-        //given
-        String chargerId = "charger-batch";
-        var sample1 = createSample(
-                chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1000L, 22.0, 1L);
-        var sample2 = createSample(
-                chargerId, Instant.parse("2026-11-15T14:05:00Z"), 1200L, 22.5, 2L);
-        String json = MAPPER.writeValueAsString(List.of(sample1, sample2));
-
-        //when
-        var response = sendPost("/api/telemetry/samples", json);
-
-        //then
-        assertThat(response.statusCode()).isEqualTo(200);
-        try (Connection connection = dataSource.getConnection()) {
-            assertThat(meterReadingRepository.countByChargerId(connection, chargerId)).isEqualTo(2);
-        }
-    }
-
-    @Test
-    void should_accept_batch_envelope_when_posting_wrapped_samples() throws IOException, InterruptedException {
-        //given
-        var sample = createWithCharger("charger-envelope");
-        String json = "{\"samples\": [" + MAPPER.writeValueAsString(sample) + "]}";
 
         //when
         var response = sendPost("/api/telemetry/samples", json);
@@ -121,24 +87,17 @@ class TelemetryIngestionIT extends BaseIT {
     }
 
     @Test
-    void should_reject_with_bad_request_and_rollback_batch_when_any_sample_has_negative_active_energy()
-            throws IOException, InterruptedException, SQLException {
+    void should_reject_with_bad_request_when_sample_has_negative_active_energy() throws IOException, InterruptedException {
         //given
-        String chargerId = "charger-rollback";
-        var validSample = createSample(
-                chargerId, Instant.parse("2026-11-15T14:00:00Z"), 1000L, 20.0, 1L);
         var invalidSample = createSample(
-                chargerId, Instant.parse("2026-11-15T14:05:00Z"), -50L, 20.0, 2L);
-        String json = MAPPER.writeValueAsString(List.of(validSample, invalidSample));
+                "charger-rollback", Instant.parse("2026-11-15T14:05:00Z"), -50L, 20.0, 2L);
+        String json = MAPPER.writeValueAsString(invalidSample);
 
         //when
         var response = sendPost("/api/telemetry/samples", json);
 
         //then
         assertThat(response.statusCode()).isEqualTo(400);
-        try (Connection connection = dataSource.getConnection()) {
-            assertThat(meterReadingRepository.countByChargerId(connection, chargerId)).isZero();
-        }
     }
 
     @Test

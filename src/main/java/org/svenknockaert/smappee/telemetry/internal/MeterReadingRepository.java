@@ -35,26 +35,16 @@ public class MeterReadingRepository {
             SELECT COUNT(*) FROM meter_readings WHERE charger_id = ?
             """;
 
-    public void saveBatch(Connection connection, List<MeterSampleDto> samples) throws SQLException {
-        if (samples.isEmpty()) {
-            return;
-        }
-
+    public void save(Connection connection, MeterSampleDto sample) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(INSERT_SQL)) {
             Instant now = Instant.now();
-            Timestamp ingestionTimestamp = Timestamp.from(now);
-
-            for (MeterSampleDto sample : samples) {
-                statement.setString(1, sample.chargerId());
-                statement.setTimestamp(2, Timestamp.from(sample.eventTime()));
-                statement.setLong(3, sample.sequenceNumber());
-                statement.setLong(4, sample.activeEnergyWh());
-                statement.setDouble(5, sample.temperature());
-                statement.setTimestamp(6, ingestionTimestamp);
-                statement.addBatch();
-            }
-
-            statement.executeBatch();
+            statement.setString(1, sample.chargerId());
+            statement.setTimestamp(2, Timestamp.from(sample.eventTime()));
+            statement.setLong(3, sample.sequenceNumber());
+            statement.setLong(4, sample.activeEnergyWh());
+            statement.setDouble(5, sample.temperature());
+            statement.setTimestamp(6, Timestamp.from(now));
+            statement.executeUpdate();
         }
     }
 
