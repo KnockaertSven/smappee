@@ -5,6 +5,20 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.net.httpserver.HttpServer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.svenknockaert.smappee.platform.api.EchoResource;
+import org.svenknockaert.smappee.platform.api.PingResource;
+import org.svenknockaert.smappee.platform.api.dto.EchoPayload;
+import org.svenknockaert.smappee.platform.persistence.DatabaseMigrator;
+import org.svenknockaert.smappee.platform.persistence.TransactionManager;
+import org.svenknockaert.smappee.telemetry.api.TelemetryIngestionResource;
+import org.svenknockaert.smappee.telemetry.api.TelemetryIngestionService;
+import org.svenknockaert.smappee.telemetry.internal.MeterReadingRepository;
+import org.svenknockaert.smappee.telemetry.internal.MeterSampleValidator;
+import org.svenknockaert.smappee.telemetry.internal.TelemetryIngestionServiceImpl;
+import org.testcontainers.containers.MySQLContainer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,12 +27,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.svenknockaert.smappee.platform.api.dto.EchoPayload;
-import org.svenknockaert.smappee.platform.api.EchoResource;
-import org.svenknockaert.smappee.platform.api.PingResource;
-import org.testcontainers.containers.MySQLContainer;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 public abstract class BaseIT {
 
@@ -29,6 +39,10 @@ public abstract class BaseIT {
     protected static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     protected static HikariDataSource dataSource;
+
+    protected static TransactionManager transactionManager;
+
+    protected static MeterReadingRepository meterReadingRepository;
 
     protected static HttpServer server;
 
@@ -44,8 +58,17 @@ public abstract class BaseIT {
         config.setPassword(MYSQL.getPassword());
         dataSource = new HikariDataSource(config);
 
+        DatabaseMigrator.migrate(dataSource);
+
+        transactionManager = new TransactionManager(dataSource);
+        meterReadingRepository = new MeterReadingRepository();
+        MeterSampleValidator meterSampleValidator = new MeterSampleValidator();
+        TelemetryIngestionService telemetryIngestionService = new TelemetryIngestionServiceImpl(
+                transactionManager, meterReadingRepository, meterSampleValidator);
+
         PingResource pingResource = new PingResource();
         EchoResource echoResource = new EchoResource();
+        TelemetryIngestionResource telemetryIngestionResource = new TelemetryIngestionResource(telemetryIngestionService);
 
         server = HttpServer.create(new InetSocketAddress(0), 0);
 
@@ -95,6 +118,54 @@ public abstract class BaseIT {
                 }
             } catch (Throwable t) {
                 exchange.sendResponseHeaders(500, -1);
+            }
+        });
+
+        server.createContext("/api/telemetry/samples", exchange -> {
+            try {
+                if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                    exchange.sendResponseHeaders(405, -1);
+                    return;
+                }
+
+                try (InputStream is = exchange.getRequestBody()) {
+                    byte[] requestBytes = is.readAllBytes();
+                    if (requestBytes.length == 0) {
+                        byte[] errBytes = MAPPER.writeValueAsBytes(Map.of("error", "Payload cannot be empty"));
+                        exchange.getResponseHeaders().set("Content-Type", "application/json");
+                        exchange.sendResponseHeaders(400, errBytes.length);
+                        try (OutputStream os = exchange.getResponseBody()) {
+                            os.write(errBytes);
+                        }
+                        return;
+                    }
+
+                    String requestBody = new String(requestBytes, StandardCharsets.UTF_8);
+                    try {
+                        var response = telemetryIngestionResource.receiveSamples(requestBody);
+                        byte[] bytes = MAPPER.writeValueAsBytes(response);
+                        exchange.getResponseHeaders().set("Content-Type", "application/json");
+                        exchange.sendResponseHeaders(202, bytes.length);
+                        try (OutputStream os = exchange.getResponseBody()) {
+                            os.write(bytes);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        byte[] errBytes = MAPPER.writeValueAsBytes(Map.of("error", e.getMessage()));
+                        exchange.getResponseHeaders().set("Content-Type", "application/json");
+                        exchange.sendResponseHeaders(400, errBytes.length);
+                        try (OutputStream os = exchange.getResponseBody()) {
+                            os.write(errBytes);
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                byte[] err = t.toString().getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type", "text/plain");
+                exchange.sendResponseHeaders(500, err.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(err);
+                }
             }
         });
 

@@ -1,4 +1,4 @@
-# Stage 1: Build the OSGi bundle
+# Stage 1: Build the OSGi bundle and copy runtime dependencies
 FROM maven:3.9-eclipse-temurin-25 AS builder
 
 WORKDIR /workspace
@@ -6,22 +6,28 @@ WORKDIR /workspace
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B && \
+    mvn dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/dependency -B
 
-# Stage 2: Runtime — Apache Felix OSGi container
+# Stage 2: Runtime
 FROM eclipse-temurin:25-jre
 
-# Felix version to use
 ARG FELIX_VERSION=7.0.5
 
-WORKDIR /felix
+WORKDIR /app
 
-# Download and unpack Apache Felix
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# Download Apache Felix (included per OSGi architecture deliverable)
 ADD https://archive.apache.org/dist/felix/org.apache.felix.main-${FELIX_VERSION}.jar /felix/felix.jar
 
-# Copy our OSGi bundle into Felix's auto-deploy directory
+# Copy all runtime dependencies and application bundle
+COPY --from=builder /workspace/target/dependency/*.jar /app/lib/
+COPY --from=builder /workspace/target/*.jar /app/lib/
 COPY --from=builder /workspace/target/*.jar /felix/bundle/
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/felix/felix.jar"]
+ENTRYPOINT ["java", "-cp", "/app/lib/*", "org.svenknockaert.Main"]
+
+

@@ -16,6 +16,7 @@
         <osgi.core.version>8.0.0</osgi.core.version>
         <osgi.ds.version>1.5.1</osgi.ds.version>
         <osgi.bundle.annotation.version>2.0.0</osgi.bundle.annotation.version>
+        <felix.scr.version>2.2.12</felix.scr.version>
         <jakarta.ws.rs.version>3.0.0</jakarta.ws.rs.version>
         <jackson.version>2.18.2</jackson.version>
         <mysql.version>9.2.0</mysql.version>
@@ -49,6 +50,11 @@
             <artifactId>org.osgi.annotation.bundle</artifactId>
             <version>${osgi.bundle.annotation.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <version>${felix.scr.version}</version>
         </dependency>
 
         <!-- JAX-RS / HTTP Whiteboard API -->
