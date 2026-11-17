@@ -20,7 +20,7 @@ docker compose up --build
 * Versioning checks of dependencies
 
 ## What I would add myself if I had more time
-* Use Spring Boot to simplify project setup massively:
+* Use Spring Boot to simplify a lot of manual setup:
   * OOTB config for transaction management, JPA
   * OOTB config for flyway
   * OOTB setup for HTTP server (Tomcat)
@@ -30,3 +30,4 @@ docker compose up --build
   * Possibly paired with an archunit test to enforce boundaries
 * Set up Jspecify to handle nullability at compile time
 * Add Kafka or a streaming pipeline for scaling to thousands of chargers
+* Take proper time to work TDD first
